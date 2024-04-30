@@ -3,6 +3,14 @@
     "name": "eval_sleuth",
     "image": "nginx:latest",
     "essential": true,
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-region": "us-west-2",
+        "awslogs-stream-prefix": "nginx",
+        "awslogs-group": "/ecs/eval_sleuth"
+      }
+    },
     "portMappings": [
       {
         "protocol": "tcp",
