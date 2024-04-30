@@ -132,3 +132,71 @@ resource "aws_route_table_association" "private_1" {
   subnet_id      = aws_subnet.private_1.id
   route_table_id = aws_route_table.private_1.id
 }
+
+/*
+ * ドメイン名
+ */
+data "aws_route53_zone" "t_horie_com" {
+  name = "t-horie.com"
+}
+
+resource "aws_route53_zone" "eval_sleuth" {
+  name = "eval-sleuth.t-horie.com"
+}
+
+resource "aws_route53_record" "eval_sleuth" {
+  zone_id = data.aws_route53_zone.t_horie_com.zone_id
+  name    = "eval-sleuth.t-horie.com"
+  type    = "NS"
+  ttl     = "30"
+  records = aws_route53_zone.eval_sleuth.name_servers
+}
+
+resource "aws_route53_record" "eval_sleuth_lb" {
+  zone_id = aws_route53_zone.eval_sleuth.zone_id
+  name    = aws_route53_zone.eval_sleuth.name
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.eval_sleuth.dns_name
+    zone_id                = aws_lb.eval_sleuth.zone_id
+    evaluate_target_health = true
+  }
+}
+
+output "domain_name" {
+  value = aws_route53_record.eval_sleuth.name
+}
+
+resource "aws_acm_certificate" "eval_sleuth" {
+  domain_name               = aws_route53_record.eval_sleuth.name
+  subject_alternative_names = []
+  validation_method         = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "eval_sleuth_certificate" {
+  for_each = {
+    for dvo in aws_acm_certificate.eval_sleuth.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  name    = each.value.name
+  type    = each.value.type
+  records = [each.value.record]
+  zone_id = aws_route53_zone.eval_sleuth.id
+  ttl     = 60
+}
+
+resource "aws_acm_certificate_validation" "eval_sleuth" {
+  certificate_arn = aws_acm_certificate.eval_sleuth.arn
+  validation_record_fqdns = [
+    for record in aws_route53_record.eval_sleuth_certificate : record.fqdn
+  ]
+}
