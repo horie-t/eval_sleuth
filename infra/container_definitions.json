@@ -1,0 +1,21 @@
+[
+  {
+    "name": "eval_sleuth",
+    "image": "269376826173.dkr.ecr.us-west-2.amazonaws.com/eval_sleuth:latest",
+    "essential": true,
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-region": "us-west-2",
+        "awslogs-stream-prefix": "nginx",
+        "awslogs-group": "/ecs/eval_sleuth"
+      }
+    },
+    "portMappings": [
+      {
+        "protocol": "tcp",
+        "containerPort": 80
+      }
+    ]
+  }
+]
