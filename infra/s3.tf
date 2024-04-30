@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "alb_log" {
-  bucket = "alb-log-eval-slueth"
+  bucket = "alb-log-eval-sleuth"
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "alb_log" {
