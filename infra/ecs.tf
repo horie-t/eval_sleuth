@@ -85,3 +85,31 @@ module "ecs_task_execution_role" {
   identifier = "ecs-tasks.amazonaws.com"
   policy     = data.aws_iam_policy_document.ecs_task_execution.json
 }
+
+resource "aws_ecr_repository" "eval_sleuth" {
+  name = "eval_sleuth"
+}
+
+resource "aws_ecr_lifecycle_policy" "example" {
+  repository = aws_ecr_repository.eval_sleuth.name
+
+  policy = <<EOF
+  {
+    "rules": [
+      {
+        "rulePriority": 1,
+        "description": "Keep last 30 release tagged images",
+        "selection": {
+          "tagStatus": "tagged",
+          "tagPrefixList": ["release"],
+          "countType": "imageCountMoreThan",
+          "countNumber": 30
+        },
+        "action": {
+          "type": "expire"
+        }
+      }
+    ]
+  }
+EOF
+}
