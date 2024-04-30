@@ -1,7 +1,7 @@
 [
   {
     "name": "eval_sleuth",
-    "image": "nginx:latest",
+    "image": "269376826173.dkr.ecr.us-west-2.amazonaws.com/eval_sleuth:latest",
     "essential": true,
     "logConfiguration": {
       "logDriver": "awslogs",
